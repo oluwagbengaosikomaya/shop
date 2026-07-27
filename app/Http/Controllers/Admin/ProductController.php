@@ -12,9 +12,11 @@ class ProductController extends Controller
     {
         $products = Product::query()
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%"))
-            ->when($request->sort, fn($q) => $q->orderBy($request->sort, $request->order ?? 'asc'))
-            ->latest()
-            ->paginate(10);
+            ->when($request->sort,   fn($q) => $q->orderBy($request->sort, 'asc'))
+            ->when(!$request->sort,  fn($q) => $q->latest())
+            ->paginate(10)
+            ->withQueryString();
+
         return view('admin.products.index', compact('products'));
     }
 
@@ -29,20 +31,22 @@ class ProductController extends Controller
             'name'        => 'required|string|max:255',
             'price'       => 'required|numeric|min:0',
             'stock'       => 'nullable|integer|min:0',
+            'category'    => 'nullable|string|max:100',
             'description' => 'nullable|string',
             'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $data['image'] = 'storage/' . $path;
+            $uploaded = cloudinary()->uploadApi()->upload(
+                $request->file('image')->getRealPath(),
+                ['folder' => 'shop/products']
+            );
+            $data['image'] = $uploaded['secure_url'];
         }
 
         Product::create($data);
 
-        return redirect()
-            ->route('admin.products.index')
-            ->with('success', 'Product added successfully');
+        return redirect()->route('admin.products.index')->with('success', 'Product added successfully.');
     }
 
     public function edit(Product $product)
@@ -56,26 +60,46 @@ class ProductController extends Controller
             'name'        => 'required|string|max:255',
             'price'       => 'required|numeric|min:0',
             'stock'       => 'nullable|integer|min:0',
+            'category'    => 'nullable|string|max:100',
             'description' => 'nullable|string',
-            'image'       => 'nullable|image|max:2048',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $data['image'] = 'storage/' . $path;
+            $this->deleteOldImage($product->image);
+            $uploaded = cloudinary()->uploadApi()->upload(
+                $request->file('image')->getRealPath(),
+                ['folder' => 'shop/products']
+            );
+            $data['image'] = $uploaded['secure_url'];
+        } elseif ($request->boolean('remove_image')) {
+            $this->deleteOldImage($product->image);
+            $data['image'] = null;
         }
 
         $product->update($data);
 
-        return redirect()
-            ->route('admin.products.index')
-            ->with('success', 'Product updated');
+        return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
     }
 
     public function destroy(Product $product)
     {
+        $this->deleteOldImage($product->image);
         $product->delete();
 
-        return back()->with('success', 'Product deleted');
+        return back()->with('success', 'Product deleted.');
+    }
+
+    private function deleteOldImage(?string $imagePath): void
+    {
+        if (!$imagePath || !str_contains($imagePath, 'res.cloudinary.com')) {
+            return; // Don't delete seeded/static assets
+        }
+
+        // Extract public_id from the URL and destroy it
+        preg_match('/shop\/products\/[^.]+/', $imagePath, $matches);
+        if ($matches) {
+            cloudinary()->uploadApi()->destroy($matches[0]);
+        }
     }
 }

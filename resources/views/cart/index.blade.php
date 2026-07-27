@@ -1,123 +1,182 @@
 @extends('layouts.app')
 
-@section('content')
-<div class="container py-3 py-md-5">
-    <h2>Your Cart</h2>
+@section('title', 'Your Cart — The Gift Shop')
 
-    <div id="cart-container">
-        @if(!$cart)
-            <p>Your cart is empty!</p>
-        @else
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead>
+@section('content')
+<div class="container py-4">
+  <h2 class="fw-bold mb-4"><i class="fa fa-shopping-cart me-2 text-danger"></i>Your Cart</h2>
+
+  <div id="cart-container">
+    @if(!$cart || count($cart) === 0)
+      <div class="text-center py-5">
+        <i class="fa fa-shopping-cart fa-4x text-muted mb-3"></i>
+        <p class="lead text-muted">Your cart is empty.</p>
+        <a href="{{ route('shop.index') }}" class="btn btn-danger btn-lg">Start Shopping</a>
+      </div>
+    @else
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
                     <tr>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                        <th>Subtotal</th>
-                        <th>Action</th>
+                      <th class="ps-3">Product</th>
+                      <th>Price</th>
+                      <th>Quantity</th>
+                      <th>Subtotal</th>
+                      <th></th>
                     </tr>
-                </thead>
-                <tbody>
+                  </thead>
+                  <tbody>
                     @foreach($cart as $id => $item)
-                    <tr data-id="{{ $id }}">
-                        <td>
-                            <img src="{{ asset($item['image']) }}" width="50" alt="{{ $item['name'] }}" class="img-fluid">
-                        </td>
-                        <td class="small">{{ $item['name'] }}</td>
-                        <td class="small">₦{{ number_format($item['price']) }}</td>
-                        <td>
-                            <div class="input-group" style="max-width: 130px;">
-                                <button class="btn btn-outline-secondary btn-sm decrease-qty" type="button">-</button>
-                                <input type="number" class="form-control form-control-sm text-center quantity" value="{{ $item['quantity'] }}" min="1" style="max-width: 50px;">
-                                <button class="btn btn-outline-secondary btn-sm increase-qty" type="button">+</button>
-                            </div>
-                        </td>
-                        <td class="subtotal small">₦{{ number_format($item['price'] * $item['quantity']) }}</td>
-                        <td>
-                            <button class="btn btn-danger btn-sm remove-item">Remove</button>
-                        </td>
+                    <tr data-id="{{ $id }}" class="align-middle">
+                      <td class="ps-3">
+                        <div class="d-flex align-items-center gap-3">
+                          <img src="{{ asset($item['image']) }}" width="60" height="60" style="object-fit:cover;" class="rounded" alt="{{ $item['name'] }}">
+                          <div>
+                            <p class="mb-0 fw-semibold small">{{ $item['name'] }}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="small">₦{{ number_format($item['price']) }}</td>
+                      <td>
+                        <div class="input-group" style="max-width:120px;">
+                          <button class="btn btn-outline-secondary btn-sm decrease-qty" type="button">-</button>
+                          <input type="number" class="form-control form-control-sm text-center quantity" value="{{ $item['quantity'] }}" min="1" max="{{ $item['stock'] ?? 99 }}">
+                          <button class="btn btn-outline-secondary btn-sm increase-qty" type="button">+</button>
+                        </div>
+                      </td>
+                      <td class="subtotal fw-semibold">₦{{ number_format($item['price'] * $item['quantity']) }}</td>
+                      <td>
+                        <button class="btn btn-sm btn-outline-danger remove-item" title="Remove">
+                          <i class="fa fa-trash"></i>
+                        </button>
+                      </td>
                     </tr>
                     @endforeach
-                </tbody>
-            </table>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3">
+            <a href="{{ route('shop.index') }}" class="btn btn-outline-secondary">
+              <i class="fa fa-arrow-left me-1"></i>Continue Shopping
+            </a>
+            <a href="{{ route('cart.clear') }}" class="btn btn-outline-danger ms-2"
+               onclick="return confirm('Clear entire cart?')">
+              <i class="fa fa-trash me-1"></i>Clear Cart
+            </a>
+          </div>
         </div>
 
-        <h4 class="text-end">Total: ₦<span id="cart-total">{{ number_format($total) }}</span></h4>
-        @endif
-    </div>
-
-@if($cart)
-    <div class="mt-3 d-grid d-md-block">
-        <a href="{{ route('checkout.index') }}" class="btn btn-success btn-lg">
-            Proceed to Checkout
-        </a>
-    </div>
-@endif
+        <div class="col-lg-4">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <h5 class="fw-bold mb-3">Order Summary</h5>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Subtotal</span>
+                <span>₦<span id="cart-total">{{ number_format($total) }}</span></span>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Delivery</span>
+                <span class="text-success small">Calculated at checkout</span>
+              </div>
+              <hr>
+              <div class="d-flex justify-content-between fw-bold fs-5 mb-4">
+                <span>Total</span>
+                <span class="text-danger">₦<span id="cart-total-2">{{ number_format($total) }}</span></span>
+              </div>
+              <a href="{{ route('checkout.index') }}" class="btn btn-danger w-100 btn-lg">
+                <i class="fa fa-lock me-2"></i>Proceed to Checkout
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    @endif
+  </div>
 </div>
+@endsection
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@section('scripts')
 <script>
-$(document).ready(function(){
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-    $('.increase-qty').click(function(){
-        let input = $(this).siblings('.quantity');
-        let newQty = parseInt(input.val()) + 1;
-        input.val(newQty).trigger('change');
+function syncTotals(total) {
+    document.getElementById('cart-total').textContent  = total;
+    document.getElementById('cart-total-2').textContent = total;
+}
+
+document.querySelectorAll('.increase-qty').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const input  = this.previousElementSibling;
+        const maxVal = parseInt(input.max) || 99;
+        input.value  = Math.min(maxVal, parseInt(input.value) + 1);
+        input.dispatchEvent(new Event('change'));
     });
+});
 
-    $('.decrease-qty').click(function(){
-        let input = $(this).siblings('.quantity');
-        let newQty = Math.max(1, parseInt(input.val()) - 1);
-        input.val(newQty).trigger('change');
+document.querySelectorAll('.decrease-qty').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const input = this.nextElementSibling;
+        input.value = Math.max(1, parseInt(input.value) - 1);
+        input.dispatchEvent(new Event('change'));
     });
+});
 
-    $('.quantity').on('change', function(){
-        let row = $(this).closest('tr');
-        let productId = row.data('id');
-        let qty = $(this).val();
+document.querySelectorAll('.quantity').forEach(input => {
+    input.addEventListener('change', function () {
+        const row       = this.closest('tr');
+        const productId = row.dataset.id;
+        const qty       = this.value;
 
-        $.post('/cart/update/' + productId, {
-            _token: '{{ csrf_token() }}',
-            quantity: qty
-        }, function(response){
-            row.find('.subtotal').text('₦' + response.subtotal);
-            $('#cart-total').text(response.total);
-            let badge = $('.fa-shopping-cart').siblings('span.badge');
-            if(badge.length === 0 && response.cartCount > 0){
-                $('.fa-shopping-cart').after(
-                    `<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">${response.cartCount}</span>`
-                );
+        fetch(`/cart/update/${productId}`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ quantity: qty })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                showToast(data.error, 'error');
             } else {
-                badge.text(response.cartCount);
-                if(response.cartCount == 0) badge.remove();
+                row.querySelector('.subtotal').textContent = '₦' + data.subtotal;
+                syncTotals(data.total);
+                updateCartBadge(data.cartCount);
             }
         });
     });
+});
 
-    $('.remove-item').click(function(){
-        let row = $(this).closest('tr');
-        let productId = row.data('id');
+document.querySelectorAll('.remove-item').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const row       = this.closest('tr');
+        const productId = row.dataset.id;
 
-        $.post('/cart/remove/' + productId, {
-            _token: '{{ csrf_token() }}'
-        }, function(response){
+        fetch(`/cart/remove/${productId}`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({})
+        })
+        .then(r => r.json())
+        .then(data => {
             row.remove();
-            $('#cart-total').text(response.total);
-            let badge = $('.fa-shopping-cart').siblings('span.badge');
-            if(response.cartCount > 0){
-                badge.text(response.cartCount);
-            } else {
-                badge.remove();
-            }
-            if($('tbody tr').length == 0){
-                $('#cart-container').html('<p>Your cart is empty!</p>');
+            syncTotals(data.total);
+            updateCartBadge(data.cartCount);
+            showToast('Item removed from cart.', 'info');
+            if (document.querySelectorAll('tbody tr').length === 0) {
+                document.getElementById('cart-container').innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fa fa-shopping-cart fa-4x text-muted mb-3"></i>
+                        <p class="lead text-muted">Your cart is empty.</p>
+                        <a href="/" class="btn btn-danger btn-lg">Start Shopping</a>
+                    </div>`;
             }
         });
     });
-
 });
 </script>
 @endsection

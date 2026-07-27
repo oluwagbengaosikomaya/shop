@@ -4,6 +4,8 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Order;
 
@@ -11,16 +13,19 @@ class OrderPlaced extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $order;
+    public function __construct(public Order $order) {}
 
-    public function __construct(Order $order)
+    public function envelope(): Envelope
     {
-        $this->order = $order;
+        return new Envelope(
+            subject: 'Order Confirmation #' . $this->order->id . ' — The Gift Shop',
+        );
     }
 
-    public function build()
+    public function content(): Content
     {
-        return $this->subject('Your Order Confirmation')
-                    ->view('emails.order_placed');
+        return new Content(
+            view: 'emails.order_placed',
+        );
     }
 }
