@@ -25,6 +25,19 @@
             .btn-sm { font-size: .75rem; padding: .25rem .5rem; }
             h1 { font-size: 1.5rem; }
         }
+
+        /* Chat Widget */
+        #chat-fab { position:fixed; bottom:28px; right:28px; z-index:1050; width:52px; height:52px; border-radius:50%; background:#6f42c1; color:#fff; border:none; font-size:1.4rem; box-shadow:0 4px 16px rgba(0,0,0,.25); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        #chat-box { position:fixed; bottom:92px; right:28px; z-index:1050; width:320px; max-width:95vw; background:#fff; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,.18); display:none; flex-direction:column; overflow:hidden; }
+        #chat-header { background:#6f42c1; color:#fff; padding:12px 16px; font-weight:600; display:flex; justify-content:space-between; align-items:center; }
+        #chat-messages { height:280px; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+        .chat-msg { max-width:80%; padding:8px 12px; border-radius:12px; font-size:.875rem; line-height:1.4; }
+        .chat-msg.bot { background:#f0e6ff; align-self:flex-start; border-bottom-left-radius:4px; }
+        .chat-msg.user { background:#6f42c1; color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+        #chat-input-row { display:flex; border-top:1px solid #eee; }
+        #chat-input { flex:1; border:none; padding:10px 12px; font-size:.875rem; outline:none; }
+        #chat-send { background:#6f42c1; color:#fff; border:none; padding:0 16px; cursor:pointer; font-size:1rem; }
+        #chat-send:hover { background:#5a32a3; }
     </style>
     @yield('head')
 </head>
@@ -144,7 +157,7 @@
         <div class="d-flex gap-3 mt-3">
           <a href="#"><i class="fab fa-instagram fa-lg"></i></a>
           <a href="#"><i class="fab fa-twitter fa-lg"></i></a>
-          <a href="#"><i class="fab fa-facebook fa-lg"></i></a>
+          <a href="https://www.facebook.com/"><i class="fab fa-facebook fa-lg"></i></a>
         </div>
       </div>
     </div>
@@ -155,6 +168,23 @@
     </div>
   </div>
 </footer>
+
+{{-- AI Chat Widget --}}
+<button id="chat-fab" title="Chat with us"><i class="fa fa-comment-dots"></i></button>
+
+<div id="chat-box">
+    <div id="chat-header">
+        <span><i class="fa fa-robot me-2"></i>Gift Shop Assistant</span>
+        <button onclick="toggleChat()" style="background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;">&#x2715;</button>
+    </div>
+    <div id="chat-messages">
+        <div class="chat-msg bot">Hi! I'm your gift shop assistant. Ask me about products, prices, or availability!</div>
+    </div>
+    <div id="chat-input-row">
+        <input id="chat-input" type="text" placeholder="Type a message..." maxlength="500" />
+        <button id="chat-send"><i class="fa fa-paper-plane"></i></button>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -180,6 +210,58 @@ function updateCartBadge(count) {
 // Auto-dismiss flash toasts
 document.querySelectorAll('.toast').forEach(t => {
     setTimeout(() => { if (t.parentNode) t.remove(); }, 4000);
+});
+
+// Chat Widget
+function toggleChat() {
+    const box = document.getElementById('chat-box');
+    box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
+    if (box.style.display === 'flex') document.getElementById('chat-input').focus();
+}
+
+document.getElementById('chat-fab').addEventListener('click', toggleChat);
+
+function appendMsg(text, type) {
+    const msgs = document.getElementById('chat-messages');
+    const el = document.createElement('div');
+    el.className = 'chat-msg ' + type;
+    el.textContent = text;
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+    return el;
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    appendMsg(msg, 'user');
+    input.value = '';
+
+    const typing = appendMsg('...', 'bot');
+
+    try {
+        const res = await fetch('{{ route("chat.reply") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ message: msg })
+        });
+        const data = await res.json();
+        typing.textContent = data.reply || 'Sorry, something went wrong.';
+    } catch (e) {
+        typing.textContent = 'Network error. Please try again.';
+    }
+
+    document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+}
+
+document.getElementById('chat-send').addEventListener('click', sendMessage);
+document.getElementById('chat-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sendMessage();
 });
 </script>
 @yield('scripts')

@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\LoginController;
 
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\ChatController;
 
 // Shop
 Route::get('/', [ShopController::class, 'index'])->name('shop.index');
@@ -71,6 +72,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('admins', [\App\Http\Controllers\Admin\AdminUserController::class, 'store'])->name('admins.store');
     Route::delete('admins/{admin}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])->name('admins.destroy');
 });
+
+// Chat Bot
+Route::post('/chat', [ChatController::class, 'reply'])->name('chat.reply');
 
 // Cart Routes
 Route::prefix('cart')->group(function () {
