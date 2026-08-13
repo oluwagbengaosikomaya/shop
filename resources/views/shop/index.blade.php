@@ -49,8 +49,52 @@
   </button>
 </div>
 
+{{-- Trust Badges --}}
+<div class="bg-white border-bottom" id="shopnow">
+  <div class="container py-3">
+    <div class="row g-2 text-center">
+      <div class="col-6 col-md-3">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <i class="fa fa-truck text-danger fa-lg"></i>
+          <div class="text-start">
+            <p class="mb-0 fw-semibold small">Free Delivery</p>
+            <p class="mb-0 text-muted" style="font-size:.75rem;">On orders over ₦10,000</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <i class="fa fa-shield-alt text-danger fa-lg"></i>
+          <div class="text-start">
+            <p class="mb-0 fw-semibold small">Secure Payment</p>
+            <p class="mb-0 text-muted" style="font-size:.75rem;">Powered by Paystack</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <i class="fa fa-gift text-danger fa-lg"></i>
+          <div class="text-start">
+            <p class="mb-0 fw-semibold small">Gift Wrapping</p>
+            <p class="mb-0 text-muted" style="font-size:.75rem;">On every order</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <i class="fa fa-headset text-danger fa-lg"></i>
+          <div class="text-start">
+            <p class="mb-0 fw-semibold small">24/7 Support</p>
+            <p class="mb-0 text-muted" style="font-size:.75rem;">Always here to help</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {{-- Search & Filter Bar --}}
-<div class="bg-white shadow-sm py-3 sticky-top" style="top:0; z-index:100;" id="shopnow">
+<div class="bg-white shadow-sm py-3 sticky-top" style="top:0; z-index:100;">
   <div class="container">
     <form method="GET" action="{{ route('shop.index') }}" class="row g-2 align-items-end">
       <div class="col-12 col-md-4">
@@ -93,14 +137,33 @@
 
 {{-- Products Grid --}}
 <div class="container py-4">
-  @if(request()->hasAny(['search','category','sort','min_price','max_price']))
-    <p class="text-muted small mb-3">
-      Showing {{ $products->total() }} result(s)
-      @if(request('search')) for "<strong>{{ request('search') }}</strong>"@endif
-    </p>
-  @endif
 
-  <div class="row g-3">
+  {{-- Section Header + Category Pills --}}
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <h5 class="fw-bold mb-0">
+        @if(request()->hasAny(['search','category','sort','min_price','max_price']))
+          {{ $products->total() }} result(s)@if(request('search')) for "<strong>{{ request('search') }}</strong>"@endif
+        @else
+          🛍️ Our Products
+        @endif
+      </h5>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{{ route('shop.index', array_merge(request()->except('category'), ['category' => 'all'])) }}"
+         class="btn btn-sm rounded-pill {{ !request('category') || request('category') === 'all' ? 'btn-danger' : 'btn-outline-secondary' }}">
+        All
+      </a>
+      @foreach($categories as $cat)
+        <a href="{{ route('shop.index', array_merge(request()->except('category'), ['category' => $cat])) }}"
+           class="btn btn-sm rounded-pill {{ request('category') === $cat ? 'btn-danger' : 'btn-outline-secondary' }}">
+          {{ ucfirst($cat) }}
+        </a>
+      @endforeach
+    </div>
+  </div>
+
+  <div class="row g-3" id="products-grid">
     @forelse ($products as $product)
       <div class="col-6 col-md-4 col-lg-3">
         <div class="card shadow-sm h-100 product-card border-0">
@@ -125,7 +188,8 @@
               <i class="fa fa-eye"></i>
             </button>
           </div>
-          <div class="card-body text-center d-flex flex-column">
+          <a href="{{ route('shop.show', $product) }}" class="stretched-link" style="position:absolute;inset:0;z-index:0;"></a>
+          <div class="card-body text-center d-flex flex-column" style="position:relative;z-index:1;">
             <p class="card-text small fw-semibold mb-1">{{ $product->name }}</p>
             <p class="fw-bold text-danger mb-1">₦{{ number_format($product->price) }}</p>
             @php $avg = $product->avgRating(); @endphp
@@ -143,13 +207,16 @@
               <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
             </div>
             @endif
-            <div class="mt-auto">
+            <div class="mt-auto d-flex gap-1">
               @if($product->isOutOfStock())
                 <button class="btn btn-sm btn-secondary w-100" disabled>Out of Stock</button>
               @else
-                <button class="btn btn-sm btn-danger w-100 add-to-cart-btn" data-id="{{ $product->id }}">
+                <button class="btn btn-sm btn-danger flex-fill add-to-cart-btn" data-id="{{ $product->id }}">
                   <i class="fa fa-cart-plus me-1"></i>Add to Cart
                 </button>
+                <a href="{{ route('shop.show', $product) }}" class="btn btn-sm btn-outline-secondary" title="View Details">
+                  <i class="fa fa-eye"></i>
+                </a>
               @endif
             </div>
           </div>
@@ -157,8 +224,10 @@
       </div>
     @empty
       <div class="col-12 text-center py-5">
-        <i class="fa fa-search fa-3x text-muted mb-3"></i>
-        <p class="lead text-muted">No products found. <a href="{{ route('shop.index') }}">Clear filters</a></p>
+        <div style="font-size:4rem;">🎁</div>
+        <h5 class="fw-bold mt-3">No gifts found</h5>
+        <p class="text-muted">We couldn't find what you're looking for. Try a different search or browse all gifts.</p>
+        <a href="{{ route('shop.index') }}" class="btn btn-danger px-4 mt-1">Browse All Gifts</a>
       </div>
     @endforelse
   </div>
@@ -216,7 +285,16 @@
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-// Add to cart (product card button)
+// Filter loading state
+document.querySelector('form[method="GET"]')?.addEventListener('submit', function() {
+    document.getElementById('products-grid')?.classList.add('loading');
+});
+document.querySelectorAll('form[method="GET"] select').forEach(sel => {
+    sel.addEventListener('change', function() {
+        this.closest('form').submit();
+    });
+});
+
 document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
     btn.addEventListener('click', function () {
         const id  = this.dataset.id;

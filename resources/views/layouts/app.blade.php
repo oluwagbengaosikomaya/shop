@@ -15,8 +15,12 @@
         body { background-color: #f8f9fa; }
         .navbar-brand i { font-size: 1.2rem; }
         .toast-container { z-index: 9999; }
-        .product-card { transition: transform .2s, box-shadow .2s; }
+        .product-card { transition: transform .2s, box-shadow .2s; position: relative; }
         .product-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.12) !important; }
+        .product-card .quick-view-btn,
+        .product-card .add-to-cart-btn,
+        .product-card .btn { position: relative; z-index: 2; }
+        #products-grid.loading { opacity: .4; pointer-events: none; transition: opacity .2s; }
         .badge-stock { font-size: .7rem; }
         .footer-links a { color: rgba(255,255,255,.7); text-decoration: none; }
         .footer-links a:hover { color: #fff; }
@@ -71,6 +75,12 @@
     </div>
     @endif
     <div id="js-toast-container"></div>
+</div>
+
+{{-- Announcement Banner --}}
+<div id="announcement-bar" style="background:#BF0A30; color:#fff; font-size:.85rem; padding:8px 0; text-align:center; position:relative;">
+  <span>🎉 Free delivery on orders over ₦10,000! Use code <strong>FREESHIP</strong> at checkout.</span>
+  <button onclick="document.getElementById('announcement-bar').style.display='none'" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;line-height:1;">&#x2715;</button>
 </div>
 
 <header>
@@ -164,7 +174,7 @@
     <hr class="border-secondary">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
       <small class="text-white-50">&copy; {{ date('Y') }} The Gift Shop. All rights reserved.</small>
-      <a href="#" class="text-white-50 small">Back to top ↑</a>
+      <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" class="text-white-50 small">Back to top ↑</a>
     </div>
   </div>
 </footer>
