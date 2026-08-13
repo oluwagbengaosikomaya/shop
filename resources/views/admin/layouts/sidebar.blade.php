@@ -18,4 +18,16 @@
         </a>
     </li>
 
+    <li class="nav-item">
+        <a href="{{ route('admin.coupons.index') }}" class="nav-link">
+            Coupons
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a href="{{ route('admin.admins.index') }}" class="nav-link">
+            Admins
+        </a>
+    </li>
+
 </ul>

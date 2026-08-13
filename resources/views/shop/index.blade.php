@@ -127,7 +127,22 @@
           </div>
           <div class="card-body text-center d-flex flex-column">
             <p class="card-text small fw-semibold mb-1">{{ $product->name }}</p>
-            <p class="fw-bold text-danger mb-2">₦{{ number_format($product->price) }}</p>
+            <p class="fw-bold text-danger mb-1">₦{{ number_format($product->price) }}</p>
+            @php $avg = $product->avgRating(); @endphp
+            @if($avg > 0)
+            <div class="mb-2" style="font-size:.75rem;">
+              <span class="text-warning">
+                @for($i = 1; $i <= 5; $i++)
+                  <i class="fa{{ $i <= round($avg) ? 's' : 'r' }} fa-star"></i>
+                @endfor
+              </span>
+              <span class="text-muted">({{ $avg }})</span>
+            </div>
+            @else
+            <div class="mb-2" style="font-size:.75rem; color:#ccc;">
+              <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
+            </div>
+            @endif
             <div class="mt-auto">
               @if($product->isOutOfStock())
                 <button class="btn btn-sm btn-secondary w-100" disabled>Out of Stock</button>

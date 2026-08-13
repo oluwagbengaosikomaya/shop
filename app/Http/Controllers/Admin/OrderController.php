@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OrderStatusUpdated;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderController extends Controller
@@ -33,7 +36,17 @@ class OrderController extends Controller
             'status' => 'required|in:pending,processing,shipped,completed,cancelled',
         ]);
 
+        $previousStatus = $order->status;
         $order->update(['status' => $request->status]);
+
+        if ($previousStatus !== $request->status && $order->customer_email) {
+            try {
+                Mail::to($order->customer_email)->send(new OrderStatusUpdated($order));
+            } catch (\Exception $e) {
+                Log::error('Order status email failed: ' . $e->getMessage());
+            }
+        }
+
         return redirect()->back()->with('success', 'Order status updated!');
     }
 

@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\PaystackWebhookController;
 
 // Shop
 Route::get('/', [ShopController::class, 'index'])->name('shop.index');
@@ -71,7 +72,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('admins/create', [\App\Http\Controllers\Admin\AdminUserController::class, 'create'])->name('admins.create');
     Route::post('admins', [\App\Http\Controllers\Admin\AdminUserController::class, 'store'])->name('admins.store');
     Route::delete('admins/{admin}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])->name('admins.destroy');
+
+    Route::get('coupons', [\App\Http\Controllers\Admin\CouponController::class, 'index'])->name('coupons.index');
+    Route::get('coupons/create', [\App\Http\Controllers\Admin\CouponController::class, 'create'])->name('coupons.create');
+    Route::post('coupons', [\App\Http\Controllers\Admin\CouponController::class, 'store'])->name('coupons.store');
+    Route::post('coupons/{coupon}/toggle', [\App\Http\Controllers\Admin\CouponController::class, 'toggle'])->name('coupons.toggle');
+    Route::delete('coupons/{coupon}', [\App\Http\Controllers\Admin\CouponController::class, 'destroy'])->name('coupons.destroy');
 });
+
+// Paystack Webhook (no CSRF, no auth)
+Route::post('/webhook/paystack', [PaystackWebhookController::class, 'handle'])->name('webhook.paystack');
 
 // Chat Bot
 Route::post('/chat', [ChatController::class, 'reply'])->name('chat.reply');
