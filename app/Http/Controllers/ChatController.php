@@ -57,7 +57,7 @@ class ChatController extends Controller
         $response = Http::timeout(15)
             ->withToken($apiKey)
             ->post('https://api.groq.com/openai/v1/chat/completions', [
-                'model' => 'llama3-8b-8192',
+                'model' => 'llama-3.1-8b-instant',
                 'messages' => [
                     ['role' => 'system', 'content' => $systemInstruction],
                     ['role' => 'user',   'content' => $request->message],
