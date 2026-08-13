@@ -84,13 +84,7 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Payment was not successful. Please try again.');
         }
 
-        $cart = session('cart', []);
-
-        if (empty($cart)) {
-            return redirect()->route('shop.index')->with('error', 'Your session expired. Please place your order again.');
-        }
-
-        // Extract metadata
+        // Extract metadata first — used as fallback if session is gone (e.g. on cloud/multi-server)
         $meta          = collect($data['data']['metadata']['custom_fields'] ?? []);
         $customerName  = $meta->firstWhere('variable_name', 'name')['value']    ?? auth()->user()?->name  ?? 'Customer';
         $customerPhone = $meta->firstWhere('variable_name', 'phone')['value']   ?? auth()->user()?->phone ?? null;
@@ -98,9 +92,36 @@ class CheckoutController extends Controller
         $city          = $meta->firstWhere('variable_name', 'city')['value']    ?? null;
         $state         = $meta->firstWhere('variable_name', 'state')['value']   ?? null;
         $customerEmail = $data['data']['customer']['email'] ?? auth()->user()?->email;
+        $userId        = $meta->firstWhere('variable_name', 'user_id')['value'] ?? auth()->id();
+        $couponCode    = $meta->firstWhere('variable_name', 'coupon_code')['value'] ?? session('coupon.code');
+        $discount      = (int) ($meta->firstWhere('variable_name', 'discount')['value'] ?? session('coupon.discount', 0));
+        $cartJson      = $meta->firstWhere('variable_name', 'cart')['value'] ?? null;
+
+        // Prefer session cart; fall back to metadata cart
+        $cart = session('cart', []);
+        if (empty($cart) && $cartJson) {
+            $decoded = json_decode($cartJson, true);
+            // Re-key by product_id to match session cart structure
+            foreach ($decoded as $item) {
+                if (isset($item['product_id'])) {
+                    $cart[$item['product_id']] = $item;
+                }
+            }
+        }
+
+        // If webhook already created the order (race condition), wait briefly and check again
+        if (empty($cart)) {
+            sleep(2);
+            $existing = Order::where('payment_reference', $reference)->first();
+            if ($existing) {
+                session()->forget(['cart', 'coupon']);
+                return redirect()->route('order.confirmation', $existing->id);
+            }
+            return redirect()->route('shop.index')->with('error', 'Your session expired. Please contact support with reference: ' . $reference);
+        }
 
         try {
-            $order = DB::transaction(function () use ($cart, $customerName, $customerEmail, $customerPhone, $address, $city, $state, $reference) {
+            $order = DB::transaction(function () use ($cart, $customerName, $customerEmail, $customerPhone, $address, $city, $state, $reference, $userId, $discount) {
 
                 // Final stock check inside transaction
                 foreach ($cart as $item) {
@@ -111,14 +132,12 @@ class CheckoutController extends Controller
                     }
                 }
 
-                $subtotal      = collect($cart)->sum(fn($i) => ($i['price'] ?? 0) * ($i['quantity'] ?? 1));
-                $couponSession = session('coupon');
-                $discount      = $couponSession['discount'] ?? 0;
-                $deliveryFee   = $state ? DeliveryFee::for($state) : 0;
-                $finalTotal    = max(0, $subtotal - $discount + $deliveryFee);
+                $subtotal    = collect($cart)->sum(fn($i) => ($i['price'] ?? 0) * ($i['quantity'] ?? 1));
+                $deliveryFee = $state ? DeliveryFee::for($state) : 0;
+                $finalTotal  = max(0, $subtotal - $discount + $deliveryFee);
 
                 $order = Order::create([
-                    'user_id'           => auth()->id(),
+                    'user_id'           => $userId ?: null,
                     'customer_name'     => $customerName,
                     'customer_email'    => $customerEmail,
                     'customer_phone'    => $customerPhone,
@@ -166,7 +185,7 @@ class CheckoutController extends Controller
         }
 
         // Increment coupon usage
-        if ($couponCode = session('coupon.code')) {
+        if ($couponCode) {
             \App\Models\Coupon::where('code', $couponCode)->increment('used_count');
         }
 
