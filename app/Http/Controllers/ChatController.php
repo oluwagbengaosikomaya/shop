@@ -14,10 +14,10 @@ class ChatController extends Controller
     {
         $request->validate(['message' => 'required|string|max:500']);
 
-        $apiKey = config('services.gemini.key');
+        $apiKey = config('services.groq.key');
 
         if (empty($apiKey)) {
-            return response()->json(['reply' => 'Gemini API key is not configured. Please set GEMINI_API_KEY in your .env file.']);
+            return response()->json(['reply' => 'Groq API key is not configured. Please set GROQ_API_KEY in your .env file.']);
         }
 
         // Products context
@@ -55,24 +55,19 @@ class ChatController extends Controller
             . $orderContext;
 
         $response = Http::timeout(15)
-            ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={$apiKey}", [
-                'system_instruction' => [
-                    'parts' => [['text' => $systemInstruction]],
+            ->withToken($apiKey)
+            ->post('https://api.groq.com/openai/v1/chat/completions', [
+                'model' => 'llama3-8b-8192',
+                'messages' => [
+                    ['role' => 'system', 'content' => $systemInstruction],
+                    ['role' => 'user',   'content' => $request->message],
                 ],
-                'contents' => [
-                    [
-                        'role'  => 'user',
-                        'parts' => [['text' => $request->message]],
-                    ],
-                ],
-                'generationConfig' => [
-                    'maxOutputTokens' => 300,
-                    'temperature'     => 0.7,
-                ],
+                'max_tokens' => 300,
+                'temperature' => 0.7,
             ]);
 
         if ($response->failed()) {
-            Log::error('Gemini chat error', [
+            Log::error('Groq chat error', [
                 'status' => $response->status(),
                 'body'   => $response->body(),
             ]);
@@ -80,7 +75,7 @@ class ChatController extends Controller
             return response()->json(['reply' => "AI error: {$error}"]);
         }
 
-        $reply = $response->json('candidates.0.content.parts.0.text') ?? 'I could not understand that. Please try again.';
+        $reply = $response->json('choices.0.message.content') ?? 'I could not understand that. Please try again.';
 
         return response()->json(['reply' => trim($reply)]);
     }
