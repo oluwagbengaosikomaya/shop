@@ -162,11 +162,11 @@
       <div class="col-md-4 mb-4 footer-links">
         <h6 class="text-uppercase fw-bold mb-3">Contact</h6>
         <p class="small text-white-50 mb-1"><i class="fa fa-envelope me-2"></i>hello@thegiftshop.ng</p>
-        <p class="small text-white-50 mb-1"><i class="fa fa-phone me-2"></i>+234 800 000 0000</p>
+        <p class="small text-white-50 mb-1"><i class="fa fa-phone me-2"></i>+234 802 249 9993 </p>
         <p class="small text-white-50"><i class="fa fa-map-marker-alt me-2"></i>Lagos, Nigeria</p>
         <div class="d-flex gap-3 mt-3">
-          <a href="#"><i class="fab fa-instagram fa-lg"></i></a>
-          <a href="#"><i class="fab fa-twitter fa-lg"></i></a>
+          <a href="https://www.instagram.com/?hl=en"><i class="fab fa-instagram fa-lg"></i></a>
+          <a href="https://x.com/"><i class="fab fa-twitter fa-lg"></i></a>
           <a href="https://www.facebook.com/"><i class="fab fa-facebook fa-lg"></i></a>
         </div>
       </div>
