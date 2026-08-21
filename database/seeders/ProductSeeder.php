@@ -16,7 +16,7 @@ class ProductSeeder extends Seeder
                 'image' => 'assets/images/gift2.jpg',
                 'description' => 'Perfect valentine gift',
                 'stock' => 10,
-                'category' => 'accessories',
+                'category' => 'valentine',
             ],
             [
                 'name' => 'Pink Bag',
@@ -24,7 +24,7 @@ class ProductSeeder extends Seeder
                 'image' => 'assets/images/pinkbag.jpg',
                 'description' => 'Stylish and classy',
                 'stock' => 15,
-                'category' => 'accessories',
+                'category' => 'valentine',
             ],
             [
                 'name' => 'Hanging Gift',
@@ -32,7 +32,7 @@ class ProductSeeder extends Seeder
                 'image' => 'assets/images/hanging.jpg',
                 'description' => 'Decorative love item',
                 'stock' => 8,
-                'category' => 'decor',
+                'category' => 'wedding',
             ],
             [
                 'name' => 'Special Gift Box',
@@ -40,7 +40,7 @@ class ProductSeeder extends Seeder
                 'image' => 'assets/images/gift2.jpg',
                 'description' => 'Premium surprise box',
                 'stock' => 12,
-                'category' => 'gift-boxes',
+                'category' => 'birthday',
             ],
             [
                 'name' => 'Clothing',
@@ -48,7 +48,7 @@ class ProductSeeder extends Seeder
                 'image' => 'assets/images/tshirt.jpg',
                 'description' => 'Clothing item',
                 'stock' => 20,
-                'category' => 'clothing',
+                'category' => 'christmas',
             ],
             [
                 'name' => 'Bear',
@@ -56,7 +56,7 @@ class ProductSeeder extends Seeder
                 'image' => 'assets/images/bear.png',
                 'description' => 'Teddy bear',
                 'stock' => 5,
-                'category' => 'toys',
+                'category' => 'baby',
             ],
         ];
 
