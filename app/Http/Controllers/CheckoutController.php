@@ -92,7 +92,7 @@ class CheckoutController extends Controller
         $city          = $meta->firstWhere('variable_name', 'city')['value']    ?? null;
         $state         = $meta->firstWhere('variable_name', 'state')['value']   ?? null;
         $customerEmail = $data['data']['customer']['email'] ?? auth()->user()?->email;
-        $userId        = $meta->firstWhere('variable_name', 'user_id')['value'] ?? auth()->id();
+        $userId        = $data['data']['metadata']['user_id'] ?? auth()->id();
         $couponCode    = $meta->firstWhere('variable_name', 'coupon_code')['value'] ?? session('coupon.code');
         $discount      = (int) ($meta->firstWhere('variable_name', 'discount')['value'] ?? session('coupon.discount', 0));
         $cart = session('cart', []);
