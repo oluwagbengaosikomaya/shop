@@ -279,20 +279,15 @@ function payWithPaystack() {
         ref:      'ORD-' + Date.now() + '-' + Math.floor(Math.random() * 9999),
         metadata: {
             custom_fields: [
-                { display_name: 'Name',       variable_name: 'name',        value: name },
-                { display_name: 'Phone',      variable_name: 'phone',       value: phone },
-                { display_name: 'Address',    variable_name: 'address',     value: address },
-                { display_name: 'City',       variable_name: 'city',        value: city },
-                { display_name: 'State',      variable_name: 'state',       value: state },
-                { display_name: 'User ID',    variable_name: 'user_id',     value: '{{ auth()->id() ?? "" }}' },
-                { display_name: 'Coupon',     variable_name: 'coupon_code', value: '{{ session("coupon.code") ?? "" }}' },
-                { display_name: 'Discount',   variable_name: 'discount',    value: String(discount) },
-                { display_name: 'Cart',       variable_name: 'cart',        value: JSON.stringify(@json(array_values($cart))) },
-                { display_name: 'User ID',    variable_name: 'user_id',    value: '{{ auth()->id() ?? "" }}' },
-                { display_name: 'Coupon',     variable_name: 'coupon_code',value: '{{ session("coupon.code") ?? "" }}' },
-                { display_name: 'Discount',   variable_name: 'discount',   value: String(discount) },
-                { display_name: 'Cart',       variable_name: 'cart',       value: JSON.stringify(@json(array_values($cart))) },
-            ]
+                { display_name: 'Name',    variable_name: 'name',        value: name },
+                { display_name: 'Phone',   variable_name: 'phone',       value: phone },
+                { display_name: 'Address', variable_name: 'address',     value: address },
+                { display_name: 'City',    variable_name: 'city',        value: city },
+                { display_name: 'State',   variable_name: 'state',       value: state },
+                { display_name: 'User ID', variable_name: 'user_id',     value: '{{ auth()->id() ?? "" }}' },
+                { display_name: 'Coupon',  variable_name: 'coupon_code', value: '{{ session("coupon.code") ?? "" }}' },
+                { display_name: 'Discount',variable_name: 'discount',    value: String(discount) },
+            ],
         },
         callback: function(response) {
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying payment...';

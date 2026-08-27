@@ -95,19 +95,7 @@ class CheckoutController extends Controller
         $userId        = $meta->firstWhere('variable_name', 'user_id')['value'] ?? auth()->id();
         $couponCode    = $meta->firstWhere('variable_name', 'coupon_code')['value'] ?? session('coupon.code');
         $discount      = (int) ($meta->firstWhere('variable_name', 'discount')['value'] ?? session('coupon.discount', 0));
-        $cartJson      = $meta->firstWhere('variable_name', 'cart')['value'] ?? null;
-
-        // Prefer session cart; fall back to metadata cart
         $cart = session('cart', []);
-        if (empty($cart) && $cartJson) {
-            $decoded = json_decode($cartJson, true);
-            // Re-key by product_id to match session cart structure
-            foreach ($decoded as $item) {
-                if (isset($item['product_id'])) {
-                    $cart[$item['product_id']] = $item;
-                }
-            }
-        }
 
         // If webhook already created the order (race condition), wait briefly and check again
         if (empty($cart)) {
