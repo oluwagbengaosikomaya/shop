@@ -43,6 +43,7 @@
         #chat-send { background:#6f42c1; color:#fff; border:none; padding:0 16px; cursor:pointer; font-size:1rem; }
         #chat-send:hover { background:#5a32a3; }
     </style>
+    @livewireStyles
     @yield('head')
 </head>
 
@@ -197,6 +198,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+@livewireScripts
 <script>
 // Global toast helper
 function showToast(message, type = 'success') {

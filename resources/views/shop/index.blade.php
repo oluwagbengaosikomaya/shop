@@ -213,150 +213,7 @@
   </div>
 </div>
 
-{{-- Search & Filter Bar --}}
-<div class="bg-white shadow-sm py-3 sticky-top" style="top:0; z-index:100;">
-  <div class="container">
-    <form method="GET" action="{{ route('shop.index') }}" class="row g-2 align-items-end">
-      <div class="col-12 col-md-4">
-        <div class="input-group">
-          <span class="input-group-text"><i class="fa fa-search"></i></span>
-          <input type="text" name="search" class="form-control" placeholder="Search gifts..." value="{{ request('search') }}">
-        </div>
-      </div>
-      <div class="col-6 col-md-2">
-        <select name="category" class="form-select">
-          <option value="all">All Categories</option>
-          @foreach($categories as $cat)
-            <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
-          @endforeach
-        </select>
-      </div>
-      <div class="col-6 col-md-2">
-        <select name="sort" class="form-select">
-          <option value="latest" {{ request('sort','latest') == 'latest' ? 'selected' : '' }}>Newest</option>
-          <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Price: Low → High</option>
-          <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Price: High → Low</option>
-          <option value="name" {{ request('sort') == 'name' ? 'selected' : '' }}>Name A–Z</option>
-        </select>
-      </div>
-      <div class="col-4 col-md-1">
-        <input type="number" name="min_price" class="form-control" placeholder="Min ₦" value="{{ request('min_price') }}">
-      </div>
-      <div class="col-4 col-md-1">
-        <input type="number" name="max_price" class="form-control" placeholder="Max ₦" value="{{ request('max_price') }}">
-      </div>
-      <div class="col-4 col-md-1">
-        <button type="submit" class="btn btn-danger w-100">Filter</button>
-      </div>
-      <div class="col-12 col-md-1">
-        <a href="{{ route('shop.index') }}" class="btn btn-outline-secondary w-100">Clear</a>
-      </div>
-    </form>
-  </div>
-</div>
-
-{{-- Products Grid --}}
-<div class="container py-4">
-
-  {{-- Section Header + Category Pills --}}
-  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-    <div>
-      <h5 class="fw-bold mb-0">
-        @if(request()->hasAny(['search','category','sort','min_price','max_price']))
-          {{ $products->total() }} result(s)@if(request('search')) for "<strong>{{ request('search') }}</strong>"@endif
-        @else
-          🛍️ Our Products
-        @endif
-      </h5>
-    </div>
-    <div class="d-flex flex-wrap gap-2">
-      <a href="{{ route('shop.index', array_merge(request()->except('category'), ['category' => 'all'])) }}"
-         class="btn btn-sm rounded-pill {{ !request('category') || request('category') === 'all' ? 'btn-danger' : 'btn-outline-secondary' }}">
-        All
-      </a>
-      @foreach($categories as $cat)
-        <a href="{{ route('shop.index', array_merge(request()->except('category'), ['category' => $cat])) }}"
-           class="btn btn-sm rounded-pill {{ request('category') === $cat ? 'btn-danger' : 'btn-outline-secondary' }}">
-          {{ ucfirst($cat) }}
-        </a>
-      @endforeach
-    </div>
-  </div>
-
-  <div class="row g-3" id="products-grid">
-    @forelse ($products as $product)
-      <div class="col-6 col-md-4 col-lg-3">
-        <div class="card shadow-sm h-100 product-card border-0">
-          <div class="position-relative">
-            <img src="{{ asset($product->image) }}" class="card-img-top" alt="{{ $product->name }}" style="height:200px; object-fit:cover;">
-            @if($product->isOutOfStock())
-              <span class="position-absolute top-0 start-0 badge bg-secondary m-2 badge-stock">Out of Stock</span>
-            @elseif($product->isLowStock())
-              <span class="position-absolute top-0 start-0 badge bg-warning text-dark m-2 badge-stock">Only {{ $product->stock }} left!</span>
-            @else
-              <span class="position-absolute top-0 start-0 badge bg-success m-2 badge-stock">In Stock</span>
-            @endif
-            <button class="position-absolute top-0 end-0 btn btn-sm btn-light m-2 rounded-circle quick-view-btn"
-                    data-id="{{ $product->id }}"
-                    data-name="{{ $product->name }}"
-                    data-price="{{ number_format($product->price) }}"
-                    data-desc="{{ $product->description }}"
-                    data-image="{{ asset($product->image) }}"
-                    data-stock="{{ $product->stock }}"
-                    data-category="{{ $product->category }}"
-                    title="Quick View">
-              <i class="fa fa-eye"></i>
-            </button>
-          </div>
-          <a href="{{ route('shop.show', $product) }}" class="stretched-link" style="position:absolute;inset:0;z-index:0;"></a>
-          <div class="card-body text-center d-flex flex-column" style="position:relative;z-index:1;">
-            <p class="card-text small fw-semibold mb-1">{{ $product->name }}</p>
-            <p class="fw-bold text-danger mb-1">₦{{ number_format($product->price) }}</p>
-            @php $avg = $product->avgRating(); @endphp
-            @if($avg > 0)
-            <div class="mb-2" style="font-size:.75rem;">
-              <span class="text-warning">
-                @for($i = 1; $i <= 5; $i++)
-                  <i class="fa{{ $i <= round($avg) ? 's' : 'r' }} fa-star"></i>
-                @endfor
-              </span>
-              <span class="text-muted">({{ $avg }})</span>
-            </div>
-            @else
-            <div class="mb-2" style="font-size:.75rem; color:#ccc;">
-              <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
-            </div>
-            @endif
-            <div class="mt-auto d-flex gap-1">
-              @if($product->isOutOfStock())
-                <button class="btn btn-sm btn-secondary w-100" disabled>Out of Stock</button>
-              @else
-                <button class="btn btn-sm btn-danger flex-fill add-to-cart-btn" data-id="{{ $product->id }}">
-                  <i class="fa fa-cart-plus me-1"></i>Add to Cart
-                </button>
-                <a href="{{ route('shop.show', $product) }}" class="btn btn-sm btn-outline-secondary" title="View Details">
-                  <i class="fa fa-eye"></i>
-                </a>
-              @endif
-            </div>
-          </div>
-        </div>
-      </div>
-    @empty
-      <div class="col-12 text-center py-5">
-        <div style="font-size:4rem;">🎁</div>
-        <h5 class="fw-bold mt-3">No gifts found</h5>
-        <p class="text-muted">We couldn't find what you're looking for. Try a different search or browse all gifts.</p>
-        <a href="{{ route('shop.index') }}" class="btn btn-danger px-4 mt-1">Browse All Gifts</a>
-      </div>
-    @endforelse
-  </div>
-
-  {{-- Pagination --}}
-  <div class="d-flex justify-content-center mt-4">
-    {{ $products->links() }}
-  </div>
-</div>
+<livewire:product-filter />
 
 {{-- Testimonials --}}
 <div style="background:#fff;" class="py-5 mt-2">
@@ -483,9 +340,6 @@
 
 @section('scripts')
 <script>
-const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-
-// Newsletter
 function handleNewsletterSubmit(e) {
     e.preventDefault();
     const input = e.target.querySelector('input[type=email]');
@@ -493,103 +347,26 @@ function handleNewsletterSubmit(e) {
     input.value = '';
 }
 
-// Scroll to top FAB visibility
 const scrollFab = document.getElementById('scroll-top-fab');
 window.addEventListener('scroll', () => {
-    if (window.scrollY > 300) {
-        scrollFab.style.display = 'flex';
-    } else {
-        scrollFab.style.display = 'none';
-    }
+    scrollFab.style.display = window.scrollY > 300 ? 'flex' : 'none';
 });
 
-// Filter loading state
-document.querySelector('form[method="GET"]')?.addEventListener('submit', function() {
-    document.getElementById('products-grid')?.classList.add('loading');
-});
-document.querySelectorAll('form[method="GET"] select').forEach(sel => {
-    sel.addEventListener('change', function() {
-        this.closest('form').submit();
-    });
-});
-
-document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-        const id  = this.dataset.id;
-        const btn = this;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
-        fetch(`/cart/add/${id}`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({})
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.error) {
-                showToast(data.error, 'error');
-            } else {
-                showToast(data.success, 'success');
-                updateCartBadge(data.cartCount);
-            }
-        })
-        .catch(() => showToast('Something went wrong.', 'error'))
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa fa-cart-plus me-1"></i>Add to Cart';
-        });
-    });
-});
-
-// Quick View Modal
-let currentModalProductId = null;
-let currentModalStock     = 0;
-
-document.querySelectorAll('.quick-view-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-        currentModalProductId = this.dataset.id;
-        currentModalStock     = parseInt(this.dataset.stock);
-
-        document.getElementById('modalProductName').textContent     = this.dataset.name;
-        document.getElementById('modalProductPrice').textContent    = '₦' + this.dataset.price;
-        document.getElementById('modalProductDesc').textContent     = this.dataset.desc || 'No description available.';
-        document.getElementById('modalProductImage').src            = this.dataset.image;
-        document.getElementById('modalProductCategory').textContent = this.dataset.category || 'General';
-        document.getElementById('modalViewDetail').href             = `/product/${currentModalProductId}`;
-        document.getElementById('modalQty').value                   = 1;
-        document.getElementById('modalQty').max                     = currentModalStock;
-
-        const stockEl = document.getElementById('modalProductStock');
-        if (currentModalStock <= 0) {
-            stockEl.innerHTML = '<span class="text-danger">Out of Stock</span>';
-            document.getElementById('modalAddToCart').disabled = true;
-        } else if (currentModalStock <= 3) {
-            stockEl.innerHTML = `<span class="text-warning">Only ${currentModalStock} left in stock!</span>`;
-            document.getElementById('modalAddToCart').disabled = false;
-        } else {
-            stockEl.innerHTML = `<span class="text-success">${currentModalStock} in stock</span>`;
-            document.getElementById('modalAddToCart').disabled = false;
-        }
-
-        new bootstrap.Modal(document.getElementById('quickViewModal')).show();
-    });
-});
-
+// Quick View modal qty controls & add-to-cart (used by Livewire component)
 document.getElementById('modalDecQty').addEventListener('click', () => {
     const input = document.getElementById('modalQty');
     input.value = Math.max(1, parseInt(input.value) - 1);
 });
 document.getElementById('modalIncQty').addEventListener('click', () => {
     const input = document.getElementById('modalQty');
-    input.value = Math.min(currentModalStock, parseInt(input.value) + 1);
+    input.value = Math.min(window.currentModalStock || 99, parseInt(input.value) + 1);
 });
 
 document.getElementById('modalAddToCart').addEventListener('click', function () {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     const qty = parseInt(document.getElementById('modalQty').value);
     this.disabled = true;
     this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adding...';
-
     const addNext = (remaining) => {
         if (remaining <= 0) {
             showToast('Added to cart!', 'success');
@@ -598,24 +375,17 @@ document.getElementById('modalAddToCart').addEventListener('click', function () 
             this.innerHTML = '<i class="fa fa-cart-plus me-1"></i>Add to Cart';
             return;
         }
-        fetch(`/cart/add/${currentModalProductId}`, {
+        fetch(`/cart/add/${window.currentModalProductId}`, {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({})
         })
         .then(r => r.json())
         .then(data => {
-            if (data.error) {
-                showToast(data.error, 'error');
-                this.disabled = false;
-                this.innerHTML = '<i class="fa fa-cart-plus me-1"></i>Add to Cart';
-            } else {
-                updateCartBadge(data.cartCount);
-                addNext(remaining - 1);
-            }
+            if (data.error) { showToast(data.error, 'error'); this.disabled = false; this.innerHTML = '<i class="fa fa-cart-plus me-1"></i>Add to Cart'; }
+            else { updateCartBadge(data.cartCount); addNext(remaining - 1); }
         });
     };
-
     addNext(qty);
 });
 </script>
