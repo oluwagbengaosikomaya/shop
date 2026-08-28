@@ -46,7 +46,7 @@
                         @if($order->status === 'processing')
                             <p style="color:#555;margin:0 0 24px;">Great news! Your order <strong>#{{ $order->id }}</strong> is now being processed. We'll notify you once it ships.</p>
                         @elseif($order->status === 'shipped')
-                            <p style="color:#555;margin:0 0 24px;">Your order <strong>#{{ $order->id }}</strong> is on its way! Expect delivery soon.</p>
+                            <p style="color:#555;margin:0 0 24px;">Your order <strong>#{{ $order->id }}</strong> has been dispatched and is on its way to you! Please allow 1–3 business days for delivery. Thank you for shopping with us 🎁</p>
                         @elseif($order->status === 'completed')
                             <p style="color:#555;margin:0 0 24px;">Your order <strong>#{{ $order->id }}</strong> has been delivered. We hope you love your gift! 🎉</p>
                         @elseif($order->status === 'cancelled')
