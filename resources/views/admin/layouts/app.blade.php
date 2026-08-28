@@ -20,6 +20,7 @@
             .admin-wrapper { flex-direction: column !important; }
         }
     </style>
+    @livewireStyles
     @yield('head')
 </head>
 <body>
@@ -94,6 +95,7 @@
 <script>
     document.querySelectorAll('.toast').forEach(t => setTimeout(() => t.remove(), 4000));
 </script>
+@livewireScripts
 @yield('scripts')
 </body>
 </html>

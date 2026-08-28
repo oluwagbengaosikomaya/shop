@@ -1,0 +1,97 @@
+<div>
+    {{-- Flash message --}}
+    @if(session('success'))
+        <div class="alert alert-success py-2">{{ session('success') }}</div>
+    @endif
+
+    <div class="card shadow-sm border-0 p-3 mb-4">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <input type="text" wire:model.live.debounce.300ms="search"
+                       class="form-control" placeholder="Search products...">
+            </div>
+            <div class="col-md-4">
+                <select wire:model.live="sort" class="form-select">
+                    <option value="">Sort by...</option>
+                    <option value="name">Name A–Z</option>
+                    <option value="price">Price</option>
+                    <option value="stock">Stock</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button wire:click="$set('search', '') + $set('sort', '')"
+                        class="btn btn-outline-secondary w-100">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">#</th>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($products as $product)
+                    <tr>
+                        <td class="ps-3 text-muted small">{{ $product->id }}</td>
+                        <td>
+                            <img src="{{ asset($product->image ?: 'assets/images/no-image.png') }}"
+                                 alt="{{ $product->name }}"
+                                 class="rounded border"
+                                 style="width:56px;height:56px;object-fit:cover;">
+                        </td>
+                        <td class="fw-semibold">{{ $product->name }}</td>
+                        <td>
+                            @if($product->category)
+                                <span class="badge bg-secondary">{{ $product->category }}</span>
+                            @else
+                                <span class="text-muted small">—</span>
+                            @endif
+                        </td>
+                        <td>₦{{ number_format($product->price) }}</td>
+                        <td>
+                            @if($product->isOutOfStock())
+                                <span class="badge bg-danger">Out of Stock</span>
+                            @elseif($product->isLowStock())
+                                <span class="badge bg-warning text-dark">{{ $product->stock }} left</span>
+                            @else
+                                <span class="badge bg-success">{{ $product->stock }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{{ route('admin.products.edit', $product) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                <button wire:click="deleteProduct({{ $product->id }})"
+                                        wire:confirm="Delete {{ $product->name }}?"
+                                        class="btn btn-sm btn-outline-danger">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No products found.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center mt-4">
+        {{ $products->links() }}
+    </div>
+</div>
